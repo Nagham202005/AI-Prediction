@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title> Predict the most suitable crop </title>
+    <style>
+        body {
+            background-color: grey;
+            text-align: center;
+            background-image: url("back.png");
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            z-index: -2;
+        }
+
+        h1 {
+            font-size: 50px;
+            font-style: italic;
+            font-weight: bold;
+            color: white;
+        }
+
+        form {
+            background-color: rgba(240, 248, 255, 0.459);
+            border-radius: 100px;
+            padding: 20px;
+            width: 50rem;
+            display: inline-block;
+        }
+
+        div {
+            margin-bottom: 8px;
+        }
+
+        input[type="text"] {
+            width: 200px;
+            padding: 10px;
+            margin: 5px 0;
+            border: 1px solid #ccc;
+            border-radius: 40px;
+        }
+
+        button {
+            background-color: #cccccc;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 20px;
+        }
+
+        button:hover {
+            background-color:  #cccccc9d;
+            color: white;
+        }
+
+        #customAlert {
+            display: none;
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px 30px;
+            border-radius: 10px;
+            z-index: 9999;
+            font-size: 20px;
+            box-shadow: 0px 0px 10px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>Predict the most suitable crop</h1>
+    </div>
+
+    <div id="customAlert"></div>
+
+    <form id="cropForm">
+        <div>
+            <label style="font-size: 25px;">Nitrogen Saturation (mg/kg)</label>
+            <input type="text" id="nitrogen" placeholder="Enter your value" min="0" max="140">
+        </div>
+        <div>
+            <label style="font-size: 25px;">Phosphorus Saturation (mg/kg)</label>
+            <input type="text" id="phosphorus" placeholder="Enter your value" min="0" max="150">
+        </div>
+        <div>
+            <label style="font-size: 25px;">Potassium Saturation (mg/kg)</label>
+            <input type="text" id="potassium" placeholder="Enter your value" min="0" max="205">
+        </div>
+        <div>
+            <label style="font-size: 25px;">Temperature (°C)</label>
+            <input type="text" id="temperature" placeholder="Enter your value" min="0" max="40">
+        </div>
+        <div>
+            <label style="font-size: 25px;">Humidity (%)</label>
+            <input type="text" id="humidity" placeholder="Enter your value" min="0" max="100">
+        </div>
+        <div>
+            <label style="font-size: 25px;">PH value</label>
+            <input type="text" id="ph_value" placeholder="Enter your value" min="0" max="9">
+        </div>
+        <div>
+            <label style="font-size: 25px;">Rainfall Amount (mm)</label>
+            <input type="text" id="rainfall" placeholder="Enter your value" min="0" max="300">
+        </div>
+        <button type="submit" style="color: black">Submit</button>
+    </form>
+
+    <script>
+        function showCustomAlert(message, color = "#4CAF50") {
+            const alertBox = document.getElementById("customAlert");
+            alertBox.textContent = message;
+            alertBox.style.backgroundColor = color;
+            alertBox.style.display = "block";
+
+            setTimeout(() => {
+                alertBox.style.display = "none";
+            }, 3000);
+        }
+
+        document.getElementById('cropForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+
+            const nitrogen = document.getElementById('nitrogen').value;
+            const phosphorus = document.getElementById('phosphorus').value;
+            const potassium = document.getElementById('potassium').value;
+            const temperature = document.getElementById('temperature').value;
+            const ph_value = document.getElementById('ph_value').value;
+            const humidity = document.getElementById('humidity').value;
+            const rainfall = document.getElementById('rainfall').value;
+
+            try {
+                const response = await fetch('http://localhost:5000/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        nitrogen: nitrogen,
+                        phosphorus: phosphorus,
+                        potassium: potassium,
+                        temperature: temperature,
+                        ph_value: ph_value,
+                        humidity: humidity,
+                        rainfall: rainfall,
+                    }),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    showCustomAlert(`Prediction: ${result.prediction}`);
+                } else {
+                    showCustomAlert(`Error: ${result.message || 'Something went wrong'}`, "#f44336");
+                }
+            } catch (error) {
+                showCustomAlert(`Error: ${error.message}`, "#f44336");
+            }
+        });
+    </script>
+</body>
+</html>
